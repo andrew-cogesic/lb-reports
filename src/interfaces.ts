@@ -1,4 +1,7 @@
 export namespace Interfaces {
+    export const TIER_BASIC = 'DEAD5AE0F62A4A0FA74796C2B262BEC3';
+    // export const TIER_PREMIUM = '184A7CF4E145426D852F708418CF2F23';
+
     export type Segment = {
         "text": string;
         "props": {
@@ -14,12 +17,13 @@ export namespace Interfaces {
 
     export type Manifest = {
         brandName: string;
-        sku: string;
         date: string;
-        version: string;
-        theme: string;
+        disabled?: boolean;
         image: string;
+        sku: string;
         slogan: string;
+        theme: string;
+        version: string;
         params: {
             p_backgroundColors: string[];
             p_brandColors: string[];

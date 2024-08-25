@@ -2,48 +2,29 @@ import React from 'react';
 import './App.css';
 import './tailwind.css';
 import { Interfaces } from "./interfaces";
+import { Utils } from "./Utils";
+import { LogosPage } from "./LogosPage";
+import { StatsPage } from "./StatsPage";
 
-const TIER_BASIC = 'DEAD5AE0F62A4A0FA74796C2B262BEC3';
-const TIER_PREMIUM = '184A7CF4E145426D852F708418CF2F23';
+// "top" | "left" | "right" | "bottom" | "inside" | "outside" |
+// "insideLeft" | "insideRight" | "insideTop" | "insideBottom" |
+// "insideTopLeft" | "insideBottomLeft" | "insideTopRight" |
+// "insideBottomRight" | "insideStart" | "insideEnd" | "end" |
+// "center"
 
-const Entry = (props: { caption: string; value: string }) => {
-    const { caption, value } = props;
+const CLS_BTN = "bg-gray-100 p-4 rounded-md font-bold hover:bg-gray-200 cursor-pointer";
 
-    return (
-        <div className="grid grid-cols-2">
-          <span className="font-bold">{caption}</span>
-          <span>{value}</span>
-        </div>
-    )
-}
-
-const Palette = (props: { palette: string[] }) => {
-    const { palette } = props;
-
-    return (
-        <div className={`grid grid-cols-5`}>
-            {palette.map((color, index) =>
-            <div key={index} className="h-5" style={{ background: color }}/>
-            )}
-        </div>
-    )
+enum PageEnum {
+    logos,
+    stats
 }
 
 function App() {
     const [manifests, setManifests] = React.useState<Interfaces.Manifest[]>([]);
+    const [page, setPage] = React.useState<PageEnum>(PageEnum.logos);
 
-    const TierName = (sku: string): string => {
-        return sku === TIER_BASIC
-           ? "Basic"
-           : "Premium"
-    }
-
-    const OutputFile = (path: string): string => {
-        return `/output/${path}`
-    }
-    
     React.useEffect(() => {
-        fetch(OutputFile('manifests.json'))
+        fetch(Utils.OutputFile('manifests.json'))
         .then(response => {
             response.json()
             .then(manifests => {
@@ -53,38 +34,33 @@ function App() {
     });
     
     return (
-      <div className="container mx-auto p-4">
-          <div className="heading">
+      <div className="flex flex-col p-4 h-full">
+          <div className="heading text-center p-4 text-lg bg-gray-100 font-bold border border-grey rounded-md mb-4">
+              LOGOBEAN PURCHASED LOGO REPORT
           </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-8">
-              {manifests.map((manifest: Interfaces.Manifest, index: number) =>
-                  <div key={index} className="flex flex-col">
-                      <div
-                          className="flex items-center justify-center px-4 py-1 font-bold text-base bg-gray-100">
-                          {manifest.brandName}
+
+          <div className="flex flex-1">
+              <div className="pr-4 gap-2">
+                  <div className="sticky top-0">
+                      <div className={`${CLS_BTN} mb-2`} onClick={() => setPage(PageEnum.logos)}>
+                          LOGOS
                       </div>
-                      <div
-                          className="flex items-center justify-center px-4 py-1 italic font-bold text-sm bg-gray-100 border-b border-b-gray-300">
-                          {manifest.slogan || '(no slogan)'}
-                      </div>
-                      <div className="flex items-center justify-center p-6 bg-gray-100">
-                          <img className="w-48 h-48" src={OutputFile(`logo-${index + 1}.svg`)} alt={manifest.image}/>
-                      </div>
-                      <div className="grid bg-gray-100 border-t border-t-gray-300 p-4 gap-1">
-                          <Entry caption="Tier" value={TierName(manifest.sku)}/>
-                          <Entry caption="Layout" value={manifest.params.p_layout}/>
-                          <Entry caption="Theme" value={manifest.theme}/>
-                          <Entry caption="Split Alignment" value={manifest.params.p_splitAlignment}/>
-                          <Entry caption="Logo Font" value={manifest.params.p_logoFont}/>
-                          <Entry caption="Tagline Font" value={manifest.params.p_logoFont || 'N/A'}/>
-                          <Entry caption="Icon" value={manifest.params.p_icon || "N/A"}/>
-                          <div className="grid grid-cols-2">
-                              <span className="font-bold">Palette</span>
-                              <span><Palette palette={manifest.params.p_brandColors}/></span>
-                          </div>
+                      <div className={CLS_BTN} onClick={() => setPage(PageEnum.stats)}>
+                          STATS
                       </div>
                   </div>
-              )}
+              </div>
+
+              <div className="flex flex-col flex-1 h-full">
+              {(() => {
+              switch (page) {
+                  case PageEnum.logos:
+                      return <LogosPage dp_manifests={manifests}/>
+                  case PageEnum.stats:
+                      return <StatsPage dp_manifests={manifests}/>
+              }
+              })()}
+              </div>
           </div>
       </div>
     );
