@@ -5,6 +5,10 @@ import { Interfaces } from "./interfaces";
 import { Utils } from "./Utils";
 import { LogosPage } from "./LogosPage";
 import { StatsPage } from "./StatsPage";
+import { enableReactComponents } from "@legendapp/state/config/enableReactComponents";
+import { observer, useObservable } from "@legendapp/state/react";
+
+enableReactComponents();
 
 // "top" | "left" | "right" | "bottom" | "inside" | "outside" |
 // "insideLeft" | "insideRight" | "insideTop" | "insideBottom" |
@@ -19,16 +23,21 @@ enum PageEnum {
     stats
 }
 
-function App() {
-    const [manifests, setManifests] = React.useState<Interfaces.Manifest[]>([]);
-    const [page, setPage] = React.useState<PageEnum>(PageEnum.logos);
+const App = observer(function () {
+    const state = useObservable<{
+        manifests: Interfaces.Manifest[],
+        page: PageEnum
+    }>({
+        manifests: [],
+        page: PageEnum.logos
+    });
 
     React.useEffect(() => {
         fetch(Utils.OutputFile('manifests.json'))
         .then(response => {
             response.json()
-            .then(manifests => {
-                setManifests(manifests);
+            .then(manifestsJson => {
+                state.manifests.set(manifestsJson);
             });
         });
     });
@@ -42,10 +51,10 @@ function App() {
           <div className="flex flex-1">
               <div className="pr-4 gap-2">
                   <div className="sticky top-0">
-                      <div className={`${CLS_BTN} mb-2`} onClick={() => setPage(PageEnum.logos)}>
+                      <div className={`${CLS_BTN} mb-2`} onClick={() => state.page.set(PageEnum.logos)}>
                           LOGOS
                       </div>
-                      <div className={CLS_BTN} onClick={() => setPage(PageEnum.stats)}>
+                      <div className={CLS_BTN} onClick={() => state.page.set(PageEnum.stats)}>
                           STATS
                       </div>
                   </div>
@@ -53,17 +62,17 @@ function App() {
 
               <div className="flex flex-col flex-1 h-full">
               {(() => {
-              switch (page) {
+              switch (state.page.get()) {
                   case PageEnum.logos:
-                      return <LogosPage dp_manifests={manifests}/>
+                      return <LogosPage dp_manifests={state.manifests.get()}/>
                   case PageEnum.stats:
-                      return <StatsPage dp_manifests={manifests}/>
+                      return <StatsPage dp_manifests={state.manifests.get()}/>
               }
               })()}
               </div>
           </div>
       </div>
     );
-}
+});
 
 export default App;
