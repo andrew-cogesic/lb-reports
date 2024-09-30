@@ -53,6 +53,10 @@ const Chart = (props: {
     )
 }
 
+const RoundPercentage = (value: number, count: number): number => {
+    return Math.round((value / count * 100 + Number.EPSILON) * 100) / 100;
+}
+
 export const StatsPage = (props: {
     dp_manifests: Interfaces.Manifest[]
 }) => {
@@ -82,17 +86,19 @@ export const StatsPage = (props: {
         []
     );
 
+    const total = props.dp_manifests.length;
+
     const layoutData = layouts.map((layout: string) => {
         return {
             layout,
-            count: props.dp_manifests.filter((m => m.params.p_layout === layout)).length
+            count: RoundPercentage(props.dp_manifests.filter((m => m.params.p_layout === layout)).length, total)
         };
     }).sort((a, b) => b.count - a.count);
 
     const themeData = themes.map((theme: string) => {
         return {
             theme,
-            count: props.dp_manifests.filter((m => m.theme === theme)).length
+            count: RoundPercentage(props.dp_manifests.filter((m => m.theme === theme)).length, total)
         };
     }).sort((a, b) => b.count - a.count);
 
@@ -109,11 +115,13 @@ export const StatsPage = (props: {
         dayValues[dayIndex].count = dayValues[dayIndex].count + 1;
     });
 
+    const dayValuesData = dayValues.map(value => ({ ...value, count: RoundPercentage(value.count, total )}));
+
     return (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(30rem,1fr))] gap-8">
             <Chart dp_data={layoutData} dp_dataKey="layout" dp_title="Logo Layout Frequency"/>
             <Chart dp_data={themeData} dp_dataKey="theme" dp_title="Theme Frequency"/>
-            <Chart dp_data={dayValues} dp_dataKey="day" dp_title="Day Frequency"/>
+            <Chart dp_data={dayValuesData} dp_dataKey="day" dp_title="Day Frequency"/>
         </div>
      )
 }
